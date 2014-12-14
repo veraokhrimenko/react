@@ -1,29 +1,96 @@
-body {
-    background: #fafafa;
-    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-    color: #333;
+body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+}
+.content {
+    background: #626C85;
+    height: 100%;
+    width: 100%;
+    padding: 40px;
+    box-sizing: border-box;
 }
 
-.hero-unit {
-    margin: 50px auto 0 auto;
-    width: 300px;
-    font-size: 18px;
-    font-weight: 200;
-    line-height: 30px;
-    background-color: #eee;
-    border-radius: 6px;
-    padding: 60px;
+.chat-list {
+    display: inline-block;
+    width: 30%;
+    vertical-align: top;
 }
 
-.hero-unit h1 {
-    font-size: 60px;
-    line-height: 1;
-    letter-spacing: -1px;
+.profile {
+    padding: 20px;
+    background: #3E415E;
+    color: #fff;
 }
 
-.browsehappy {
-    margin: 0.2em 0;
-    background: #ccc;
-    color: #000;
-    padding: 0.2em 0;
+.profile .status, .profile .name {
+    display: inline-block;
+    width: 50%;
 }
+
+.search {
+    padding: 20px;
+    background: #75A0FE;
+}
+
+.search input {
+    border: none;
+    padding: 0;
+    margin: 0;
+    background: #fff;
+    height: 34px;
+    width: 100%;
+    padding: 5px 10px;
+    box-sizing: border-box;
+}
+
+
+.list {
+    background: #fff;
+    width: 100%;
+}
+
+.list .user-item {
+    width: 100%;
+    border-bottom: 1px solid #E7E7E7;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.messages {
+    border-top: 10px solid #23C4B1;
+    display: inline-block;
+    width: 60%;
+    vertical-align: top;
+    margin-left: 9%;
+    
+}
+
+.messages-content {
+    min-height: 100px;
+    background-color: #E7E7E7;
+}
+
+.input-message {
+    background-color: #fff;
+    border: none;
+    padding: 20px;
+    margin: 0;
+}
+
+.input-message input {
+    background-color: #fff;
+    border: none;
+    padding: 5px 10px;
+    height: 34px;
+    width: 100%;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+
+
+
+
+
