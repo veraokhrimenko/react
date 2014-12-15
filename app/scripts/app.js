@@ -43,15 +43,22 @@ var UserList = React.createClass({displayName: 'UserList',
             self.filterList(data.query);
         });
 
-        return { search: '' }; 
+        return { search: '', user: ''}; 
     },
     filterList: function(query) {
         this.setState({ search: query})
     },
+    checkUser: function(data) {
+        var self = this;
+        return function() {
+            CustomEvents.notify('user:selected', data );
+            self.setState({ user: data.id })
+        }
+    },
     render: function() {
-        var items = this.props.items,
+        var self = this,
+            items = this.props.items,
             searchString = this.state.search.trim().toLowerCase();
-
 
         if(searchString.length > 0){
 
@@ -61,15 +68,13 @@ var UserList = React.createClass({displayName: 'UserList',
         }
 
         return (
-            React.DOM.div(null, 
-                React.DOM.div(null,   items.map(function(item, index){
-                    return React.DOM.div( {className:"user-item"}, 
-                            React.DOM.div( {className:"name"}, item.name),
-                            React.DOM.div( {className:"status"}, item.status)
-                        )
-                    }) 
-                        
-                )
+            React.DOM.div(null,   items.map(function(item, index){
+                return React.DOM.div( {className:self.state.user === item.id ? 'user-item active' : 'user-item', onClick: self.checkUser(item) }, 
+                        React.DOM.div( {className:"name"}, item.name, self.state.user.id),
+                        React.DOM.div( {className:"status"}, item.status)
+                    )
+                }) 
+                    
             )
         );
     }
@@ -78,7 +83,9 @@ var UserList = React.createClass({displayName: 'UserList',
 var MessageInput = React.createClass({displayName: 'MessageInput',
     render: function() {
         return (
-            React.DOM.input( {type:"text", placeholder:"Type your message"} )
+            React.DOM.div( {className:"input-message"}, 
+                React.DOM.input( {type:"text", placeholder:"Type your message"} )
+            )
         );
     }
 });
@@ -98,6 +105,34 @@ var SearchInput = React.createClass({displayName: 'SearchInput',
     }
 });
 
+var ChatContent = React.createClass({displayName: 'ChatContent',
+    getInitialState: function() {
+        var self = this;
+        CustomEvents.subscribe('user:selected', function(data) {
+            self.setChatWith(data);
+        });
+
+        return { name: '', status: ''}
+    },
+    setChatWith: function(data) {
+        this.setState({ name: data.name, status: data.status })
+    },
+    render: function() {
+        var cx = React.addons.classSet;
+
+        var classes = cx({
+            'messages-content': true,
+            'active': this.state.name.length
+        });
+
+        return React.DOM.div( {className: classes }, 
+                this.state.name,
+                this.state.status,
+                MessageInput(null )
+            )
+    }
+});
+
 var libraries = [ 
     {name: 'User First', status: 'online', id: '1'}, 
     {name: 'Second User', status: 'offline', id: '2'}, 
@@ -109,10 +144,13 @@ React.renderComponent(
     document.getElementById('profile')
 );
 
+
 React.renderComponent(
-    MessageInput(null ),
-    document.getElementById('message')
+    ChatContent(null ),
+    document.getElementById('messages')
 );
+
+
 
 React.renderComponent(
     SearchInput(null ),

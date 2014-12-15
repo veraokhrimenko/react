@@ -56,10 +56,14 @@ body, html {
     border-bottom: 1px solid #E7E7E7;
     padding: 20px;
     box-sizing: border-box;
+    border-left: 10px solid #fff;
+}
+
+.list .user-item.active {
+    border-left: 10px solid #23C4B1;
 }
 
 .messages {
-    border-top: 10px solid #23C4B1;
     display: inline-block;
     width: 60%;
     vertical-align: top;
@@ -68,8 +72,13 @@ body, html {
 }
 
 .messages-content {
-    min-height: 100px;
     background-color: #E7E7E7;
+    border-top: 10px solid #23C4B1;
+    display: none;
+}
+
+.messages-content.active {
+    display: block;
 }
 
 .input-message {
