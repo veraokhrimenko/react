@@ -1,5 +1,25 @@
 /** @jsx React.DOM */
 'use strict';
+var CustomEvents = (function() {
+    var _map = {};
+ 
+    return {
+        subscribe: function(name, cb) {
+            _map[name] || (_map[name] = []);
+            _map[name].push(cb);
+        },
+     
+        notify: function(name, data) {
+            if (!_map[name]) {
+                return;
+            }
+     
+            _map[name].forEach(function(cb) {
+                cb(data);
+            });
+        }
+    }
+})();
 
 var Profile = React.createClass({displayName: 'Profile',
     getInitialState: function() {
@@ -17,10 +37,32 @@ var Profile = React.createClass({displayName: 'Profile',
 });
 
 var UserList = React.createClass({displayName: 'UserList',
+    getInitialState: function() {
+        var self = this;
+        CustomEvents.subscribe('search', function(data) {
+            self.filterList(data.query);
+        });
+
+        return { search: '' }; 
+    },
+    filterList: function(query) {
+        this.setState({ search: query})
+    },
     render: function() {
+        var items = this.props.items,
+            searchString = this.state.search.trim().toLowerCase();
+
+
+        if(searchString.length > 0){
+
+            items = items.filter(function(l){
+                return l.name.toLowerCase().match( searchString );
+            });
+        }
+
         return (
             React.DOM.div(null, 
-                React.DOM.div(null,  this.props.items.map(function(item, index){
+                React.DOM.div(null,   items.map(function(item, index){
                     return React.DOM.div( {className:"user-item"}, 
                             React.DOM.div( {className:"name"}, item.name),
                             React.DOM.div( {className:"status"}, item.status)
@@ -36,9 +78,7 @@ var UserList = React.createClass({displayName: 'UserList',
 var MessageInput = React.createClass({displayName: 'MessageInput',
     render: function() {
         return (
-            React.DOM.div(null, 
             React.DOM.input( {type:"text", placeholder:"Type your message"} )
-            )
         );
     }
 });
@@ -49,22 +89,11 @@ var SearchInput = React.createClass({displayName: 'SearchInput',
     },
     handleChange: function(e) {
         this.setState({searchString:e.target.value});
+        CustomEvents.notify('search', {query: e.target.value});
     },
     render: function() {
-        var libraries = this.props.items,
-            searchString = this.state.searchString.trim().toLowerCase();
-
-        if(searchString.length > 0){
-            libraries = libraries.filter(function(l){
-                return l.name.toLowerCase().match( searchString );
-            });
-        }
-
         return (
-            React.DOM.div(null, 
-                React.DOM.input( {type:"text", value:this.state.searchString, placeholder:"Search", onChange:this.handleChange} ),
-                UserList(  {items:  libraries })
-            )
+            React.DOM.input( {type:"text", value:this.state.searchString, placeholder:"Search", onChange:this.handleChange} )
         );
     }
 });
@@ -86,6 +115,11 @@ React.renderComponent(
 );
 
 React.renderComponent(
-    SearchInput( {items: libraries } ),
+    SearchInput(null ),
     document.getElementById('search')
+);
+
+React.renderComponent(
+    UserList( {items: libraries } ),
+    document.getElementById('list')
 );

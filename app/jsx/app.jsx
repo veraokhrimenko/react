@@ -1,5 +1,25 @@
 /** @jsx React.DOM */
 'use strict';
+var CustomEvents = (function() {
+    var _map = {};
+ 
+    return {
+        subscribe: function(name, cb) {
+            _map[name] || (_map[name] = []);
+            _map[name].push(cb);
+        },
+     
+        notify: function(name, data) {
+            if (!_map[name]) {
+                return;
+            }
+     
+            _map[name].forEach(function(cb) {
+                cb(data);
+            });
+        }
+    }
+})();
 
 var Profile = React.createClass({
     getInitialState: function() {
@@ -17,10 +37,32 @@ var Profile = React.createClass({
 });
 
 var UserList = React.createClass({
+    getInitialState: function() {
+        var self = this;
+        CustomEvents.subscribe('search', function(data) {
+            self.filterList(data.query);
+        });
+
+        return { search: '' }; 
+    },
+    filterList: function(query) {
+        this.setState({ search: query})
+    },
     render: function() {
+        var items = this.props.items,
+            searchString = this.state.search.trim().toLowerCase();
+
+
+        if(searchString.length > 0){
+
+            items = items.filter(function(l){
+                return l.name.toLowerCase().match( searchString );
+            });
+        }
+
         return (
             <div>
-                <div>{ this.props.items.map(function(item, index){
+                <div> { items.map(function(item, index){
                     return <div className="user-item">
                             <div className="name">{item.name}</div>
                             <div className="status">{item.status}</div>
@@ -36,9 +78,7 @@ var UserList = React.createClass({
 var MessageInput = React.createClass({
     render: function() {
         return (
-            <div>
             <input type="text" placeholder="Type your message" />
-            </div>
         );
     }
 });
@@ -49,22 +89,11 @@ var SearchInput = React.createClass({
     },
     handleChange: function(e) {
         this.setState({searchString:e.target.value});
+        CustomEvents.notify('search', {query: e.target.value});
     },
     render: function() {
-        var libraries = this.props.items,
-            searchString = this.state.searchString.trim().toLowerCase();
-
-        if(searchString.length > 0){
-            libraries = libraries.filter(function(l){
-                return l.name.toLowerCase().match( searchString );
-            });
-        }
-
         return (
-            <div>
-                <input type="text" value={this.state.searchString} placeholder="Search" onChange={this.handleChange} />
-                <UserList  items= { libraries }/>
-            </div>
+            <input type="text" value={this.state.searchString} placeholder="Search" onChange={this.handleChange} />
         );
     }
 });
@@ -86,6 +115,11 @@ React.renderComponent(
 );
 
 React.renderComponent(
-    <SearchInput items={ libraries } />,
+    <SearchInput />,
     document.getElementById('search')
+);
+
+React.renderComponent(
+    <UserList items={ libraries } />,
+    document.getElementById('list')
 );
