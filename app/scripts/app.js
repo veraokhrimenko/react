@@ -36,6 +36,15 @@ var Profile = React.createClass({displayName: 'Profile',
     }
 });
 
+var User = React.createClass({displayName: 'User',
+    render: function() {
+        return React.DOM.div( {className: this.props.activeId === this.props.item.id ? 'user-item active' : 'user-item', onClick: this.props.onClick }, 
+                    React.DOM.div( {className:"name"}, this.props.item.name),
+                    React.DOM.div( {className:"status"}, this.props.item.status)
+                )
+    }
+});
+
 var UserList = React.createClass({displayName: 'UserList',
     getInitialState: function() {
         var self = this;
@@ -69,24 +78,63 @@ var UserList = React.createClass({displayName: 'UserList',
 
         return (
             React.DOM.div(null,   items.map(function(item, index){
-                return React.DOM.div( {className:self.state.user === item.id ? 'user-item active' : 'user-item', onClick: self.checkUser(item) }, 
-                        React.DOM.div( {className:"name"}, item.name, self.state.user.id),
-                        React.DOM.div( {className:"status"}, item.status)
-                    )
-                }) 
-                    
+                return User( {item: item,  onClick: self.checkUser(item),  activeId: self.state.user })
+                })     
             )
         );
     }
 });
 
 var MessageInput = React.createClass({displayName: 'MessageInput',
+    handleChange: function(e) {
+        this.setState({ userInput: e.target.value });
+    },
+    handleKeyPress: function(e) {
+        if(e.which === 13) {
+            this.setState({ userInput: '' });
+            CustomEvents.notify('message:add', { text: e.target.value });
+        }
+    },
+    getInitialState: function() {
+      return {userInput: ''};
+    },
     render: function() {
         return (
             React.DOM.div( {className:"input-message"}, 
-                React.DOM.input( {type:"text", placeholder:"Type your message"} )
+                React.DOM.input( {type:"text", ref:"myInput", placeholder:"Type your message", value: this.state.userInput,  onChange: this.handleChange,  onKeyPress: this.handleKeyPress } )
             )
         );
+    }
+});
+
+
+var MessageList = React.createClass({displayName: 'MessageList',
+    addMessage: function(text) {
+        this.props.messages.push(text);
+        this.setState({message: 'added'});
+    },
+    getDefaultProps: function() {
+        var self = this;
+
+        CustomEvents.subscribe('message:add', function(data) {
+            self.addMessage(data.text);
+        });
+
+        return {
+            messages: []
+        };
+    },
+    getInitialState: function() {
+      return { message: ''};
+    },
+    render: function() {
+        var items = this.props.messages.map(function(item) {
+            return React.DOM.div( {className:"message"}, item);
+        }.bind(this));
+
+        return (
+            React.DOM.div( {className:"message-list"}, items)
+        )
     }
 });
 
@@ -126,8 +174,11 @@ var ChatContent = React.createClass({displayName: 'ChatContent',
         });
 
         return React.DOM.div( {className: classes }, 
-                this.state.name,
-                this.state.status,
+                React.DOM.div( {className:"user-info"}, 
+                    this.state.name,
+                    React.DOM.span( {className:"status"}, this.state.status)
+                ),
+                MessageList(null ),
                 MessageInput(null )
             )
     }
@@ -149,8 +200,6 @@ React.renderComponent(
     ChatContent(null ),
     document.getElementById('messages')
 );
-
-
 
 React.renderComponent(
     SearchInput(null ),

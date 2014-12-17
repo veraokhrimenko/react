@@ -36,6 +36,15 @@ var Profile = React.createClass({
     }
 });
 
+var User = React.createClass({
+    render: function() {
+        return <div className={ this.props.activeId === this.props.item.id ? 'user-item active' : 'user-item'} onClick={ this.props.onClick }>
+                    <div className="name">{this.props.item.name}</div>
+                    <div className="status">{this.props.item.status}</div>
+                </div>
+    }
+});
+
 var UserList = React.createClass({
     getInitialState: function() {
         var self = this;
@@ -69,24 +78,63 @@ var UserList = React.createClass({
 
         return (
             <div> { items.map(function(item, index){
-                return <div className={self.state.user === item.id ? 'user-item active' : 'user-item'} onClick={ self.checkUser(item) }>
-                        <div className="name">{item.name} {self.state.user.id}</div>
-                        <div className="status">{item.status}</div>
-                    </div>
-                }) }
-                    
+                return <User item={ item } onClick={ self.checkUser(item) } activeId={ self.state.user }/>
+                }) }    
             </div>
         );
     }
 });
 
 var MessageInput = React.createClass({
+    handleChange: function(e) {
+        this.setState({ userInput: e.target.value });
+    },
+    handleKeyPress: function(e) {
+        if(e.which === 13) {
+            this.setState({ userInput: '' });
+            CustomEvents.notify('message:add', { text: e.target.value });
+        }
+    },
+    getInitialState: function() {
+      return {userInput: ''};
+    },
     render: function() {
         return (
             <div className="input-message">
-                <input type="text" placeholder="Type your message" />
+                <input type="text" ref="myInput" placeholder="Type your message" value={ this.state.userInput } onChange={ this.handleChange } onKeyPress={ this.handleKeyPress } />
             </div>
         );
+    }
+});
+
+
+var MessageList = React.createClass({
+    addMessage: function(text) {
+        this.props.messages.push(text);
+        this.setState({message: 'added'});
+    },
+    getDefaultProps: function() {
+        var self = this;
+
+        CustomEvents.subscribe('message:add', function(data) {
+            self.addMessage(data.text);
+        });
+
+        return {
+            messages: []
+        };
+    },
+    getInitialState: function() {
+      return { message: ''};
+    },
+    render: function() {
+        var items = this.props.messages.map(function(item) {
+            return <div className="message">{item}</div>;
+        }.bind(this));
+
+        return (
+            <div className="message-list">{items}</div>
+        )
     }
 });
 
@@ -126,8 +174,11 @@ var ChatContent = React.createClass({
         });
 
         return <div className={ classes }>
-                {this.state.name}
-                {this.state.status}
+                <div className="user-info">
+                    {this.state.name}
+                    <span className="status">{this.state.status}</span>
+                </div>
+                <MessageList />
                 <MessageInput />
             </div>
     }
@@ -149,8 +200,6 @@ React.renderComponent(
     <ChatContent />,
     document.getElementById('messages')
 );
-
-
 
 React.renderComponent(
     <SearchInput />,
