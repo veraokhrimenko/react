@@ -113,11 +113,16 @@ var MessageList = React.createClass({
         var self = this;
 
         this.props.messages.forEach(function(i) {
+            // TODO fix this
             if(i.id == self.props.userId) {
                 i.text.push(data.text)
+            } else {
+                self.props.messages.push({
+                    id: self.props.userId,
+                    text: [data.text]
+                })
             }
         })
-
         this.setState({ message: 'added' })
     },
     getDefaultProps: function() {
@@ -132,14 +137,6 @@ var MessageList = React.createClass({
                 {
                     text: [],
                     id: '1'
-                },
-                {
-                    text: [],
-                    id: '2'
-                },
-                {
-                    text: [],
-                    id: '3'
                 }
             ]
         };
@@ -224,7 +221,6 @@ React.renderComponent(
     <Profile />,
     document.getElementById('profile')
 );
-
 
 React.renderComponent(
     <ChatContent />,
